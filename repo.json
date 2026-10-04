@@ -1,0 +1,14 @@
+{
+  "name": "AzoraFly Status Fix",
+  "plugins": [
+    {
+      "id": "azorafly-status-fix",
+      "name": "AzoraFly (Status Fix)",
+      "version": "2.1.3",
+      "lang": "ar",
+      "nsfw": false,
+      "icon": "https://azorafly.com/favicon.ico",
+      "entry": "azorafly-status-fix.plugin.js"
+    }
+  ]
+}
