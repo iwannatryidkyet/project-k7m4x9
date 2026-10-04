@@ -118,7 +118,7 @@ async function listVia(queryString, htmlPath) {
 const plugin = {
   id: "azorafly-status-fix",
   name: "AzoraFly (Status Fix)",
-  version: "2.1.3",
+  version: "2.1.4",
 
   async popular(offset, tagId) {
     const page = Math.floor(offset / 30) + 1;
@@ -383,16 +383,22 @@ const plugin = {
   async tags() {
     const html = await fetchText(BASE + "/series/");
     const seen = {};
-    const re =
-      /\{&quot;id&quot;:\[0,(\d+)\],&quot;name&quot;:\[0,&quot;([^&]+)&quot;\]/g;
+    // Current site embeds genre records in its serialization stream.
+    // Read only the id/name/color shape; never execute the embedded script.
+    const current = /\{id:(\d+),name:"((?:\\.|[^"\\])*)",color:"(?:\\.|[^"\\])*"\}/g;
     let m;
-    while ((m = re.exec(html)) !== null) {
-      if (m[1] && m[2] && !seen[m[1]]) seen[m[1]] = m[2].trim();
+    while ((m = current.exec(html)) !== null) {
+      try { seen[m[1]] = JSON.parse('"' + m[2] + '"').trim(); } catch (e) {}
+    }
+    // Retain compatibility with the older HTML serialization.
+    const legacy = /\{&quot;id&quot;:\[0,(\d+)\],&quot;name&quot;:\[0,&quot;([^&]+)&quot;\]/g;
+    while ((m = legacy.exec(html)) !== null) {
+      if (!seen[m[1]]) seen[m[1]] = m[2].trim();
     }
     return Object.keys(seen).map((gid) => ({
       id: gid,
       name: seen[gid],
-      group: "\u0627\u0644\u062a\u0635\u0646\u064a\u0641",
+      group: "Categories",
     }));
   },
 };
