@@ -2,22 +2,15 @@
 // Reads only public listing, series, chapter, and reader pages.
 
 const BASE = "https://starzmanga.com";
-const REQUEST_HEADERS = {
-  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-  "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
-  Referer: BASE + "/",
-};
-
 async function getDoc(path) {
   let lastError;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const res = await harbor.http(BASE + path, {
-        responseType: "text",
-        headers: REQUEST_HEADERS,
-      });
+      // Match the same minimal Harbor request used by the working Azora source.
+      const res = await harbor.http(BASE + path, { responseType: "text" });
       if (res && res.ok && res.body) return harbor.parseHtml(res.body);
       lastError = new Error("http " + (res && res.status) + " for " + path);
+      if (res && res.status && res.status < 500) break;
     } catch (error) {
       lastError = error;
     }
@@ -191,7 +184,7 @@ function genrePath(tagId, offset) {
 const plugin = {
   id: "starzmanga",
   name: "مانجا ستارز",
-  version: "1.0.1",
+  version: "1.0.3",
 
   async popular(offset, tagId) {
     let doc;
