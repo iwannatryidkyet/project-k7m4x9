@@ -1,14 +1,41 @@
 {
-  "name": "AzoraFly Status Fix",
+  "name": "Arabic Scans",
   "plugins": [
     {
-      "id": "azorafly-status-fix",
-      "name": "AzoraFly (Status Fix)",
-      "version": "2.1.4",
+      "id": "olympustaff",
+      "name": "Team-X",
+      "version": "1.2.2",
+      "lang": "ar",
+      "nsfw": false,
+      "icon": "https://olympustaff.com/images/TeamX.png",
+      "entry": "olympustaff.plugin.js"
+    },
+    {
+      "id": "3asq",
+      "name": "مانجا العاشق (3asq)",
+      "version": "1.2.2",
+      "lang": "ar",
+      "nsfw": false,
+      "icon": "https://3asq.online/wp-content/uploads/2021/06/cropped-ICON-270x270.png",
+      "entry": "3asq.plugin.js"
+    },
+    {
+      "id": "azorafly",
+      "name": "AzoraFly",
+      "version": "2.1.2",
       "lang": "ar",
       "nsfw": false,
       "icon": "https://azorafly.com/favicon.ico",
-      "entry": "azorafly-status-fix.plugin.js"
+      "entry": "azorafly.plugin.js"
+    },
+    {
+      "id": "starzmanga",
+      "name": "مانجا ستارز",
+      "version": "1.0.0",
+      "lang": "ar",
+      "nsfw": false,
+      "icon": "https://starzmanga.com/favicon.ico",
+      "entry": "starzmanga.plugin.js"
     }
   ]
 }
