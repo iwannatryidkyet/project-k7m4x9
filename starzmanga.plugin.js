@@ -2,17 +2,32 @@
 // Reads only public listing, series, chapter, and reader pages.
 
 const BASE = "https://starzmanga.com";
+const BROWSER_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
+  Referer: BASE + "/",
+};
+
 async function getDoc(path) {
   let lastError;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      // Match the same minimal Harbor request used by the working Azora source.
-      const res = await harbor.http(BASE + path, { responseType: "text" });
-      if (res && res.ok && res.body) return harbor.parseHtml(res.body);
-      lastError = new Error("http " + (res && res.status) + " for " + path);
-      if (res && res.status && res.status < 500) break;
-    } catch (error) {
-      lastError = error;
+  const url = BASE + path;
+  // Some site front doors reject Harbor's default request signature. Try a
+  // normal browser signature first, then Harbor's plain request as fallback.
+  const variants = [
+    { responseType: "text", headers: BROWSER_HEADERS },
+    { responseType: "text" },
+  ];
+  for (let attempt = 0; attempt < 2; attempt++) {
+    for (const options of variants) {
+      try {
+        const res = await harbor.http(url, options);
+        if (res && res.ok && res.body) return harbor.parseHtml(res.body);
+        lastError = new Error("http " + (res && res.status) + " for " + path);
+        if (res && res.status && res.status < 500) continue;
+      } catch (error) {
+        lastError = error;
+      }
     }
   }
   throw lastError || new Error("request failed for " + path);
@@ -184,7 +199,7 @@ function genrePath(tagId, offset) {
 const plugin = {
   id: "starzmanga",
   name: "مانجا ستارز",
-  version: "1.0.3",
+  version: "1.0.4",
 
   async popular(offset, tagId) {
     let doc;
