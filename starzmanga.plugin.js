@@ -2,13 +2,27 @@
 // Reads only public listing, series, chapter, and reader pages.
 
 const BASE = "https://starzmanga.com";
+const REQUEST_HEADERS = {
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
+  Referer: BASE + "/",
+};
 
 async function getDoc(path) {
-  const res = await harbor.http(BASE + path, { responseType: "text" });
-  if (!res || !res.ok || !res.body) {
-    throw new Error("http " + (res && res.status) + " for " + path);
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await harbor.http(BASE + path, {
+        responseType: "text",
+        headers: REQUEST_HEADERS,
+      });
+      if (res && res.ok && res.body) return harbor.parseHtml(res.body);
+      lastError = new Error("http " + (res && res.status) + " for " + path);
+    } catch (error) {
+      lastError = error;
+    }
   }
-  return harbor.parseHtml(res.body);
+  throw lastError || new Error("request failed for " + path);
 }
 
 async function postDoc(path, body) {
@@ -177,10 +191,22 @@ function genrePath(tagId, offset) {
 const plugin = {
   id: "starzmanga",
   name: "مانجا ستارز",
-  version: "1.0.0",
+  version: "1.0.1",
 
   async popular(offset, tagId) {
-    const doc = await getDoc(tagId ? genrePath(tagId, offset) : latestPath(offset));
+    let doc;
+    if (tagId) {
+      doc = await getDoc(genrePath(tagId, offset));
+    } else {
+      try {
+        doc = await getDoc(latestPath(offset));
+      } catch (error) {
+        // Some Harbor servers strip archive query parameters; the plain
+        // public archive remains usable and is already sorted by updates.
+        const page = pageNumber(offset);
+        doc = await getDoc(page === 1 ? "/manga/" : "/manga/page/" + page + "/");
+      }
+    }
     return summariesFromDoc(doc);
   },
 
